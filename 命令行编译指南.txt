@@ -1,0 +1,191 @@
+================================================================================
+                  Android应用命令行编译指南（无需Android Studio）
+================================================================================
+
+有多种方式可以不用Android Studio编译Android应用：
+
+
+方案一：使用Gradle命令行（推荐）⭐
+================================================================================
+
+这是最简单的方式，只需要JDK和Android SDK命令行工具。
+
+【步骤1】安装JDK
+-----------------
+1. 下载JDK 8或更高版本
+   官网：https://www.oracle.com/java/technologies/downloads/
+   或者：https://adoptium.net/ (推荐，开源)
+
+2. 安装JDK
+
+3. 验证安装：
+   java -version
+   javac -version
+
+4. 设置JAVA_HOME环境变量：
+   - 右键"此电脑" → 属性 → 高级系统设置 → 环境变量
+   - 新建系统变量：
+     变量名：JAVA_HOME
+     变量值：C:\Program Files\Java\jdk-17 (你的JDK安装路径)
+   - 添加到Path：%JAVA_HOME%\bin
+
+
+【步骤2】下载Android SDK命令行工具
+-----------------
+1. 访问：https://developer.android.com/studio#command-tools
+
+2. 下载"Command line tools only"
+   文件名类似：commandlinetools-win-xxxxx_latest.zip
+
+3. 解压到一个目录，例如：
+   C:\Android\cmdline-tools\latest\
+
+4. 设置ANDROID_HOME环境变量：
+   变量名：ANDROID_HOME
+   变量值：C:\Android
+
+5. 添加到Path：
+   %ANDROID_HOME%\cmdline-tools\latest\bin
+   %ANDROID_HOME%\platform-tools
+
+
+【步骤3】安装Android SDK组件
+-----------------
+打开命令提示符（管理员），执行：
+
+# 更新SDK管理器
+sdkmanager --update
+
+# 安装必要组件
+sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+# 接受许可
+sdkmanager --licenses
+
+
+【步骤4】编译应用
+-----------------
+cd "D:\pythonjob\CGB自动认证\android_client"
+
+# Windows
+gradlew.bat assembleDebug
+
+# 编译完成后，APK位置：
+app\build\outputs\apk\debug\app-debug.apk
+
+
+【常见问题】
+-----------------
+Q: 提示找不到gradlew.bat？
+A: 需要先创建Gradle Wrapper，见下方说明。
+
+Q: 编译很慢？
+A: 首次编译会下载依赖，需要等待。可以配置国内镜像。
+
+Q: 提示SDK版本不匹配？
+A: 安装对应的SDK版本：sdkmanager "platforms;android-XX"
+
+
+方案二：手动创建Gradle Wrapper（如果没有）
+================================================================================
+
+如果android_client目录没有gradlew.bat文件，需要先创建：
+
+【步骤1】安装Gradle
+-----------------
+1. 下载Gradle：https://gradle.org/releases/
+   推荐版本：7.5 或更高
+
+2. 解压到目录，例如：C:\Gradle
+
+3. 添加到环境变量Path：
+   C:\Gradle\gradle-7.5\bin
+
+4. 验证：
+   gradle -version
+
+
+【步骤2】生成Wrapper
+-----------------
+cd "D:\pythonjob\CGB自动认证\android_client"
+gradle wrapper --gradle-version 7.5
+
+
+【步骤3】编译
+-----------------
+gradlew.bat assembleDebug
+
+
+方案三：使用Docker（适合熟悉Docker的用户）
+================================================================================
+
+创建Dockerfile进行编译，无需本地安装任何Android工具。
+
+【Dockerfile内容】
+FROM openjdk:11
+
+# 安装Android SDK
+RUN apt-get update && apt-get install -y wget unzip
+
+# 下载SDK工具
+RUN mkdir -p /android-sdk
+WORKDIR /android-sdk
+RUN wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+RUN unzip commandlinetools-linux-9477386_latest.zip
+
+# 设置环境变量
+ENV ANDROID_HOME=/android-sdk
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools
+
+# 安装SDK组件
+RUN yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+# 编译应用
+WORKDIR /app
+COPY . .
+RUN ./gradlew assembleDebug
+
+【使用方法】
+docker build -t sms-builder .
+docker run -v "%cd%:/app" sms-builder
+
+
+方案四：在线编译服务（最简单，但需要上传代码）
+================================================================================
+
+1. GitHub Actions（推荐）
+   - 将代码推送到GitHub
+   - 配置GitHub Actions自动编译
+   - 下载编译好的APK
+
+2. Travis CI
+   - 配置.travis.yml
+   - 自动编译并发布
+
+3. CircleCI
+   - 配置.circleci/config.yml
+   - 云端编译
+
+
+方案五：使用轻量级IDE
+================================================================================
+
+如果您不想用Android Studio，可以用这些轻量级替代品：
+
+1. VS Code + Android扩展
+   - 安装VS Code
+   - 安装"Android"扩展
+   - 使用命令行编译
+
+2. IntelliJ IDEA Community（免费）
+   - 比Android Studio轻量
+   - 支持Android开发
+   - 功能类似
+
+
+================================================================================
+                        快速编译脚本（推荐使用）
+================================================================================
+
+我为您创建一个自动化编译脚本，自动检查环境并编译。
+
