@@ -1,0 +1,17 @@
+此文件是二进制文件，需要从Gradle官网下载或运行gradle wrapper命令生成。
+
+如果您看到这个提示，说明需要：
+
+方法1（推荐）：
+下载完整的gradle-wrapper.jar文件
+https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar
+
+下载后放到：
+android_client/gradle/wrapper/gradle-wrapper.jar
+
+方法2：
+安装Gradle，然后在android_client目录运行：
+gradle wrapper --gradle-version 8.0
+
+这会自动生成所有wrapper文件。
+
